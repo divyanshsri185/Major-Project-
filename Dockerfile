@@ -1,4 +1,3 @@
-git rev-parse --show-toplevel
 FROM node:22-slim
 WORKDIR /app
 COPY package*.json ./
