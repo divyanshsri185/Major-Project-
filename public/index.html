@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invigil — AI exam proctor</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="logo"><i></i>Invigil</div>
+  <nav id="nav"><span class="st">Exam proctoring</span></nav>
+</header>
+
+<!-- Auth -->
+<section id="auth" class="hide">
+  <div class="panel authbox">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabLogin" aria-selected="true">Sign in</button>
+      <button class="tab" role="tab" id="tabReg" aria-selected="false">Create account</button>
+    </div>
+    <form id="authForm" novalidate>
+      <label class="field hide" id="fName"><span>Full name</span><input type="text" id="aName" autocomplete="name"></label>
+      <label class="field"><span>Email</span><input type="email" id="aEmail" autocomplete="email" required></label>
+      <label class="field"><span>Password</span><input type="password" id="aPass" autocomplete="current-password" required></label>
+      <label class="field hide" id="fInvite"><span>Examiner invite code (optional)</span><input type="text" id="aInvite" autocomplete="off"></label>
+      <button class="btn" id="authGo" type="submit">Sign in</button>
+      <p class="err" id="authErr" role="alert"></p>
+    </form>
+  </div>
+</section>
+
+<!-- Student: exam list -->
+<section id="exams" class="hide">
+  <h2>Your exams</h2>
+  <div id="examGrid" class="grid2"></div>
+  <h3 style="margin-top:28px">Past attempts</h3>
+  <div class="panel scroll"><table><thead><tr><th>Exam</th><th>Score</th><th>Integrity</th><th>Verdict</th><th>Date</th></tr></thead><tbody id="mineTbl"></tbody></table></div>
+</section>
+
+<!-- Landing / system check -->
+<section id="landing" class="hide">
+  <div class="hero">
+    <div>
+      <h1 id="lTitle">Take the exam. We keep it fair.</h1>
+      <p>Invigil watches for the things that break exam integrity — leaving the tab, looking away, extra voices, copy and paste — and gives the examiner a clear report afterward.</p>
+      <p style="font-size:15px">Video and audio are analysed in your browser and never uploaded. Only the resulting flags (for example “tab switched”) are sent to the examiner.</p>
+      <button class="btn ghost" id="backExams">← Back to exams</button>
+    </div>
+    <div class="panel">
+      <h3>Before you begin</h3>
+      <ul class="checks">
+        <li><span>Camera access</span><span class="st" id="cCam">Not checked</span></li>
+        <li><span>Microphone access</span><span class="st" id="cMic">Not checked</span></li>
+        <li><span>Full-screen mode</span><span class="st" id="cFs">Not checked</span></li>
+        <li><span>Face visible in frame</span><span class="st" id="cFace">Not checked</span></li>
+      </ul>
+      <div class="row" style="margin-top:14px">
+        <button class="btn ghost" id="runCheck">Run checks</button>
+        <button class="btn" id="begin" disabled>Begin exam</button>
+      </div>
+      <p class="st" style="font-weight:400;font-size:14px" id="chkMsg">Allow camera and microphone when asked. If you have no camera, choose “Continue without devices” to use browser monitoring only.</p>
+      <button class="btn ghost hide" id="noDev">Continue without devices</button>
+      <p class="err" id="startErr" role="alert"></p>
+    </div>
+  </div>
+  <div class="feat">
+    <div><h3>Camera monitoring</h3><p>Detects a missing face, covered camera and sudden movement.</p></div>
+    <div><h3>Browser lockdown</h3><p>Flags tab switches, window blur, fullscreen exit, copy, paste and right-click.</p></div>
+    <div><h3>Audio awareness</h3><p>Flags sustained loud sound such as talking in the room.</p></div>
+  </div>
+</section>
+
+<!-- Exam -->
+<section id="examView" class="hide">
+  <div class="exam">
+    <div class="panel">
+      <div class="bar"><h3 style="margin:0" id="qNum"></h3><span class="timer" id="timer">--:--</span></div>
+      <p id="qText" style="font-size:18px"></p>
+      <div id="opts"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:18px">
+        <button class="btn ghost" id="prev">Previous</button>
+        <span><button class="btn ghost" id="next">Next</button> <button class="btn" id="submit">Submit exam</button></span>
+      </div>
+      <p class="st" id="saveSt" style="font-weight:400;font-size:13px;margin:10px 0 0"></p>
+    </div>
+    <aside class="panel side">
+      <video id="vid" muted playsinline></video>
+      <div class="panel" id="thirdEyePanel" style="margin-top:14px;padding:14px">
+        <h3 style="margin:0 0 8px">Third Eye — Phone Camera</h3>
+        <p id="thirdEyeStatus" class="st">Phone pairing will appear here.</p>
+        <button class="btn ghost" id="thirdEyePair" type="button">Pair phone</button>
+        <div id="thirdEyeQr" style="margin-top:10px"></div>
+        <video id="thirdEyeVideo" autoplay muted playsinline style="display:none;width:100%;border-radius:10px;margin-top:10px"></video>
+      </div>
+      <div class="live"><span><span class="dot" id="dCam"></span>Face</span><span><span class="dot" id="dMic"></span>Audio</span><span><span class="dot" id="dTab"></span>Focus</span></div>
+      <div>Integrity score</div>
+      <div class="score" id="score">100</div>
+      <div class="meter"><b id="meter"></b></div>
+      <h3 style="font-size:16px">Event log</h3>
+      <ul class="log" id="log"></ul>
+    </aside>
+  </div>
+</section>
+
+<!-- Student report -->
+<section id="report" class="hide">
+  <div class="panel">
+    <h2>Exam report</h2>
+    <p id="repSum" style="font-size:18px"></p>
+    <table><tbody id="repTbl"></tbody></table>
+    <h3 style="margin-top:20px">Flagged events</h3>
+    <ul class="log" id="repLog" style="max-height:none"></ul>
+    <p style="margin-top:18px"><button class="btn" id="again">Back to exams</button></p>
+  </div>
+</section>
+
+<!-- Examiner -->
+<section id="admin" class="hide">
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="atOverview" aria-selected="true">Sessions</button>
+    <button class="tab" role="tab" id="atExams" aria-selected="false">Exams</button>
+  </div>
+
+  <div id="admOverview">
+    <div class="stats" id="stats"></div>
+    <div class="row" style="margin-bottom:12px">
+      <label><span class="who">Exam&nbsp;</span><select id="fExam" style="width:auto"></select></label>
+      <label><span class="who">Status&nbsp;</span><select id="fStatus" style="width:auto">
+        <option value="">All</option><option value="submitted">Submitted</option><option value="expired">Expired</option><option value="in_progress">In progress</option></select></label>
+      <button class="btn ghost sm" id="refresh">Refresh</button>
+      <button class="btn ghost sm right" id="csv">Download CSV</button>
+    </div>
+    <div class="panel scroll"><table><thead><tr><th>Student</th><th>Exam</th><th>Status</th><th>Score</th><th>Integrity</th><th>Flags</th><th>Reviewed</th></tr></thead><tbody id="sessTbl"></tbody></table></div>
+  </div>
+
+  <div id="admExams" class="hide">
+    <div class="row" style="margin-bottom:12px"><button class="btn" id="newExam">+ New exam</button></div>
+    <div id="admExamList" class="grid2"></div>
+  </div>
+
+  <div id="admEditor" class="hide panel">
+    <h3 id="edTitleH">New exam</h3>
+    <p class="err" id="edLock" style="color:var(--warn)"></p>
+    <label class="field"><span>Title</span><input type="text" id="edTitle" maxlength="140"></label>
+    <label class="field"><span>Description</span><textarea id="edDesc" maxlength="600"></textarea></label>
+    <label class="field"><span>Duration (minutes)</span><input type="number" id="edDur" min="1" max="480" value="30"></label>
+    <h3>Questions</h3>
+    <div id="edQs"></div>
+    <div class="row"><button class="btn ghost" id="addQ">+ Add question</button></div>
+    <p class="err" id="edErr" role="alert"></p>
+    <div class="row" style="margin-top:10px"><button class="btn" id="saveExam">Save exam</button><button class="btn ghost" id="cancelExam">Cancel</button></div>
+  </div>
+
+  <div id="admDetail" class="hide panel">
+    <div class="row"><button class="btn ghost sm" id="backSess">← All sessions</button></div>
+    <h2 id="dTitle" style="margin-top:12px"></h2>
+    <p id="dSum" style="font-size:18px"></p>
+    <div class="scroll"><table><tbody id="dTbl"></tbody></table></div>
+    <h3 style="margin-top:20px">Event timeline</h3>
+    <ul class="log" id="dLog" style="max-height:none"></ul>
+    <h3 style="margin-top:20px">Answers</h3>
+    <div id="dAns"></div>
+    <h3 style="margin-top:20px">Reviewer notes</h3>
+    <textarea id="dNote" maxlength="2000"></textarea>
+    <div class="row" style="margin-top:10px">
+      <label class="row"><input type="checkbox" id="dRev" style="width:auto"> Mark as reviewed</label>
+      <button class="btn sm right" id="dSave">Save review</button>
+    </div>
+  </div>
+</section>
+</div>
+<canvas id="work" width="64" height="48" class="hide"></canvas>
+<script src="/app.js"></script>
+</body>
+</html>

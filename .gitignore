@@ -1,0 +1,25 @@
+node_modules
+data/*.db*
+.env
+
+.DS_Store
+
+# Local backup files
+src/*.before-third-eye
+src/*.pre-third-eye
+src/*.third-eye-backup
+src/*.third-eye-new
+src/*.save
+public/*.pre-third-eye
+public/*.third-eye-new
+
+# Local backup files
+src/*.before-third-eye
+src/*.pre-third-eye
+src/*.third-eye-backup
+src/*.third-eye-new
+src/*.save
+public/*.pre-third-eye
+public/*.third-eye-new
+
+public/*.third-eye-backup
